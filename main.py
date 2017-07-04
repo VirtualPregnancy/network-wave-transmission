@@ -22,12 +22,8 @@ char_admit=np.transpose(np.column_stack((np.absolute(CharacteristicAdmittance[0]
 #Real and imaginary parts of wave propogation constant
 wave_prop_constant=np.transpose(np.column_stack((WaveProp[0][:].real,WaveProp[0][:].imag)))
 
-
-#print NTime
 ## Incident flow profile, insonation site flow (incident, reflected, total), insonation site pressure, insonation site velocity
 [InsonationSiteVelocity,time]=funcs.timecourse(params.StartTime,params.EndTime,params.dt,reflect_coeff,char_admit,wave_prop_constant,SteadyFlow,UtCompliance)
-
-
     
 funcs.flow_velocity_properties(InsonationSiteVelocity)    
 if(params.plotv=="y"): 

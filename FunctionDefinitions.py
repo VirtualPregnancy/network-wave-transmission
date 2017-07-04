@@ -8,7 +8,7 @@ def total_resistance(vessels,terminals):
     
     for i in range(0,np.size(vessels)):
         resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0)/vessels['number'][i]
-        if(vessels['type'][i]=='Anastomose'):
+        if(vessels['vessel_type'][i]=='Anastomose'):
             anast_index=i
         else:
             total_resistance=total_resistance+resistance[i]
@@ -52,7 +52,7 @@ def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
     reflect=np.zeros((np.size(vessels),params.NHar),dtype=complex)
     #First consider the terminal admitance, which is the admittance of the asastomoses and veins (in series) added in parallel to the SA/IVS admittance
     for i in range(0,np.size(vessels)):
-        if(vessels['type'][i]=='Anastomose'):
+        if(vessels['vessel_type'][i]=='Anastomose'):
             for j in range(0,params.NHar):
                 eff_admit[i][j]=char_admit[i][j]/(1.0+char_admit[i][j]*v_resist) #adding venous resistance in series
             for j in range(0,params.NHar):
