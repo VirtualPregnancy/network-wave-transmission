@@ -42,7 +42,7 @@ EndTime=60.0/HeartRate #end of a single breath
 dt=0.01 #time step for plotting
 
 
-##BASELINE VALUES FOR COMPARISON - Not necessary to change
+##BASELINE VALUES FOR COMPARISON - Not necessary to change unless you change the structure of the geometry(!)
 #Definition of geometry
 #Generation |Number of vessels at this level | Vessel Radius (mm) | Vessel length (mm) | 
 vessels_bl = np.array([(1, 1, 2.0, 100.0,'Uterine'),(2, 1, 2.0, 18.0,'Arcuate'),(3, 50, 0.2, 6.0,'Radial'),(4, 50, 0.2, 9.0,'Anastomose')],

@@ -32,3 +32,10 @@ An (optional) window will also open, showing the velocity waveform at the insona
 
 ### Input
 The model geometry and parameterisation is defined in *VesselDefinition.py*, and parameter definitions are given within this script. The user can change the physical parameters (blood density and viscosity), elasticity of blood vessels and the size and number of vessels at each generation in the uterine artery structure.
+
+### Input
+Code structure:
+
+- *VesselDefinition.py:* Defines the properties of the vessels 
+- *RUNME.py:* Calls functions required to set up model geometry, conduct simulations and plot outputs
+- *FunctionDefinitions.py:* contains all the routines required to calculate admittance, sum through a network structure, apply boundary conditions and export solutions.

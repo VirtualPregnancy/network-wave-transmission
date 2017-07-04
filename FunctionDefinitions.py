@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import numpy as np
 import VesselDefinition as params
-##Function definitions
+##Function definitions: contains all the routines required to calculate admittance, sum through a network structure, apply boundary conditions and export solutions.
 def total_resistance(vessels,terminals):
+    #Calculates total resistance of the uterine arteries, outputs this resistance and a venous equivalent resistance (half of arterial resistance)
     resistance=np.zeros(np.size(vessels))
     total_resistance=0.0
     
     for i in range(0,np.size(vessels)):
+        #Poiseille resistance of each vessels
         resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0)/vessels['number'][i]
         if(vessels['vessel_type'][i]=='Anastomose'):
             anast_index=i
@@ -15,7 +17,7 @@ def total_resistance(vessels,terminals):
 
     if(vessels['length'][anast_index]==0.0):
         venous_resistance=0.0
-        #Only IVS contribution to resistance (as in Mo et al.)
+        #Only IVS contribution to resistance (as in Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376.)
         parallel_resistance=terminals[0]
     else:        
         venous_resistance=total_resistance/2.0 #Assuming veins are half as resistive as arteries
@@ -27,6 +29,8 @@ def total_resistance(vessels,terminals):
     
     
 def characteristic_admittance(vessels,terminals):
+    #Calculates characteristic admittance of each blood vessel following the model employed by Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376. Outputs characteristic admittance, propagation constant and uterine artery compliance
+    #initialise admitance and propogation constant
     char_admit=np.zeros((np.size(vessels),params.NHar),dtype=complex)
     prop_const=np.zeros((np.size(vessels),params.NHar),dtype=complex)
     C=np.zeros(np.size(vessels))
@@ -36,7 +40,7 @@ def characteristic_admittance(vessels,terminals):
     for i in range(0,np.size(vessels)):
         hbar=params.h*vessels['radius'][i]
         C[i]=3.0*np.pi*vessels['radius'][i]**3/(2.0*hbar*params.E)# Compliance per unit length
-        L[i]=9.0*params.rho/(4.0*np.pi*vessels['radius'][i]**2)#per unit length
+        L[i]=9.0*params.rho/(4.0*np.pi*vessels['radius'][i]**2)#inertia term per unit length
         R[i]=81.0*params.mu/(8.0*np.pi*vessels['radius'][i]**4) #laminar resistance per unit length
         G[i]=0.0
         for j in range(0,params.NHar):
@@ -48,6 +52,8 @@ def characteristic_admittance(vessels,terminals):
     return [char_admit,prop_const,utcomp]
     
 def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
+    #Calculates effective  admittance and reflection coefficient of each of each blood vessel. Outputs are effective admittance and reflection coefficient
+    #initialise effective admittance and reflection coefficiet
     eff_admit=np.zeros((np.size(vessels),params.NHar),dtype=complex)
     reflect=np.zeros((np.size(vessels),params.NHar),dtype=complex)
     #First consider the terminal admitance, which is the admittance of the asastomoses and veins (in series) added in parallel to the SA/IVS admittance
@@ -70,13 +76,14 @@ def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
     return [eff_admit,reflect]
     
 def flow_velocity_properties(velocity):
-    print "Velocity vaveform properties "
+    #Outputs properties of the velocity waveform
+    print "Velocity waveform properties "
     print "============================="
     print 'S/D = ' + str(np.max(velocity)/np.min(velocity))
     print 'RI = ' + str((np.max(velocity)-np.min(velocity))/np.max(velocity))
     print 'PI = ' + str((np.max(velocity)-np.min(velocity))*np.size(velocity)/np.sum(velocity))
     
-    #check for notch - note that this fails for complicated waveforms but works for most physiologically realistic parameter sets
+    #check for notch - note that this is a simple assessment of the characteristics of the waveform and will fail fo some complicated waveforms but works for most physiologically realistic parameter sets. Plot your waveform if you are simulating something perturbed far from the phyisological range (especially with many reflections) to confirm accuracy of outputs.
     point1=1
     point2=1
     checksize=np.size(velocity)-2
@@ -96,11 +103,15 @@ def flow_velocity_properties(velocity):
         print "No notch present"
         
 def timecourse(StartTime,EndTime,dt,reflect_coeff,char_admit,wave_prop_constant,SteadyFlow,UtCompliance):
+    #Convert admittance spectra to time dependent waveforms as described by Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376.) Output is insonation site velocity and time, for plotting but interested users can add outputs.
+    
     LengthOfUterine=params.vessels['length'][0] #mm
     UterineRadius=params.vessels['radius'][0]#mm
+    #define time coursr
     NTime=int(np.ceil((EndTime-StartTime)/dt))
     time=np.zeros(NTime)
     IncidentFlow=np.zeros(NTime)
+    #initialise waveforms
     InsonationIncidentFlow=np.zeros(NTime) #ml/min
     InsonationReflectFlow=np.zeros(NTime) #ml/min
     InsonationSitePressureIn=np.zeros(NTime) #Pa
