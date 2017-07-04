@@ -4,7 +4,7 @@ A library to solve biological wave transmission problems in simple networks of a
 ## Project description
 This a set of python scripts that allows simulation software allows simulation of wave transmission in the uterine arteries. Users can define properties of different classes of uterine arteries (specifically uterine, radial, arteriovenous anastomoses) and a terminal load representing the placental bed. The scripts will output metrics that represent Doppler ultrasound markers of placental health: The ratio of systolic to diastolic flow velocities (S/D), the resistance index (RI) and the pulsatility index (PI). If the model predicts dicrotic notching, properties of the notch are also output to screen. A plot of the velocity waveform predicted at the ultrasound insonation site is also output.
 
-## #Pre-requisites
+### Pre-requisites
 - The ability to run python scripts from the command line
 - The python numpy package python (http://www.numpy.org)
 - The python matplotlib package (https://matplotlib.org)
@@ -31,3 +31,4 @@ No notch present
 An (optional) window will also open, showing the velocity waveform at the insonation site.
 
 ### Input
+The model geometry and parameterisation is defined in *VesselDefinition.py*, and parameter definitions are given within this script. The user can change the physical parameters (blood density and viscosity), elasticity of blood vessels and the size and number of vessels at each generation in the uterine artery structure.
