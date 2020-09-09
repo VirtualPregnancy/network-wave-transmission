@@ -7,7 +7,7 @@ mu=3.4e-3
 rho=1.05e-03
 #Vascular elastance parameters
 E=1.50e+06 #Pa
-h=0.1 #no units
+h=0.01 #no units
 
 #Definition of geometry
 #Generation |Number of vessels at this level | Vessel Radius (mm) | Vessel length (mm) |
@@ -47,7 +47,7 @@ dt=0.01 #time step for plotting
 ##BASELINE VALUES FOR COMPARISON - Not necessary to change unless you change the structure of the geometry(!)
 #Definition of geometry
 #Generation |Number of vessels at this level | Vessel Radius (mm) | Vessel length (mm) |
-vessels_bl = np.array([(1, 1, .36, 85.0,'Uterine'),(2, 1, 0.14, 17.5,'Arcuate'),(3, 4.5, 0.11, 33.0,'Radial'),(4, 13, 0.25, .54,'Spiral'),(5, 2, 0.6, 7.2,'Canal'),(6, 50, 0.2, 0.0,'Anastomose')],
+vessels_bl = np.array([(1, 1, .36, 85.0,"Uterine"),(2, 1, 0.14, 17.5,'Arcuate'),(3, 4.5, 0.11, 33.0,'Radial'),(4, 13, 0.25, .54,'Spiral'),(5, 2, 0.6, 7.2,'Canal'),(6, 50, 0.2, 0.0,'Anastomose')],
                   dtype=[('generation', 'i4'),('number', 'i4'),('radius', 'f8'),('length', 'f8'),('vessel_type', 'S10')])
 #spirals and IVS are defined by  resistance and compliance [R|C]
 SA_IVS_bl = np.array([1.6,1e-8,1]);
