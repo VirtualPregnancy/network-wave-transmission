@@ -10,7 +10,7 @@ def total_resistance(vessels,terminals):
     for i in range(0,np.size(vessels)):
         #Poiseille resistance of each vessels
         resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0)/vessels['number'][i]
-        if(vessels['vessel_type'][i]==b'Anastomose'):
+        if(vessels['vessel_type'][i]=='Anastomose'):
             anast_index=i
         else:
             total_resistance=total_resistance+resistance[i]
@@ -58,7 +58,7 @@ def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
     reflect=np.zeros((np.size(vessels),params.NHar),dtype=complex)
     #First consider the terminal admitance, which is the admittance of the asastomoses and veins (in series) added in parallel to the SA/IVS admittance
     for i in range(0,np.size(vessels)):
-        if(vessels['vessel_type'][i]==b'Anastomose'):
+        if(vessels['vessel_type'][i]=='Anastomose'):
             for j in range(0,params.NHar):
                 eff_admit[i][j]=char_admit[i][j]/(1.0+char_admit[i][j]*v_resist) #adding venous resistance in series
             for j in range(0,params.NHar):
@@ -103,11 +103,18 @@ def flow_velocity_properties(velocity):
         print("No notch present")
 
         
-def timecourse(StartTime,EndTime,dt,reflect_coeff,char_admit,wave_prop_constant,SteadyFlow,UtCompliance):
+def timecourse(StartTime,EndTime,dt,reflect_coeff,char_admit,wave_prop_constant,SteadyFlow,UtCompliance,vessel):
     #Convert admittance spectra to time dependent waveforms as described by Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376.) Output is insonation site velocity and time, for plotting but interested users can add outputs.
-    
-    LengthOfUterine=params.vessels['length'][0] #mm
-    UterineRadius=params.vessels['radius'][0]#mm
+    print(vessel)
+    for i in range(0, np.size(params.vessels)):
+        if(params.vessels['vessel_type'][i]==vessel):
+            vessel_index = i
+
+    LengthOfUterine=params.vessels['length'][vessel_index] #mm
+    UterineRadius=params.vessels['radius'][vessel_index]#mm
+    if(vessel == 'Uterine'):
+        assemssment_point = params.Dist2Inson
+
     #define time coursr
     NTime=int(np.ceil((EndTime-StartTime)/dt))
     time=np.zeros(NTime)
@@ -127,21 +134,21 @@ def timecourse(StartTime,EndTime,dt,reflect_coeff,char_admit,wave_prop_constant,
             IncidentFlow[i]=IncidentFlow[i]+params.IWavHar[1,j]*np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j])
         
             InsonationIncidentFlow[i]=InsonationIncidentFlow[i]+\
-            params.IWavHar[1,j]*np.exp(-params.Dist2Inson*wave_prop_constant[0,j])*\
-            np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*params.Dist2Inson)
+            params.IWavHar[1,j]*np.exp(-assemssment_point*wave_prop_constant[0,j])*\
+            np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*assemssment_point)
         
             InsonationReflectFlow[i]=InsonationReflectFlow[i]-\
-            reflect_coeff[0,j]*params.IWavHar[1,j]*np.exp((-params.Dist2Inson-LengthOfUterine)*wave_prop_constant[0,j])*\
-            np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*(params.Dist2Inson+LengthOfUterine)+reflect_coeff[1,j])
+            reflect_coeff[0,j]*params.IWavHar[1,j]*np.exp((-assemssment_point-LengthOfUterine)*wave_prop_constant[0,j])*\
+            np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*(assemssment_point+LengthOfUterine)+reflect_coeff[1,j])
         
             #Incident pressure is characteristic impedance times incident flow
             InsonationSitePressureIn[i]=InsonationSitePressureIn[i]+\
-            params.IWavHar[1,j]*np.exp(-params.Dist2Inson*wave_prop_constant[0,j])*1000.0/60.0*np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*params.Dist2Inson-char_admit[1,j])/char_admit[0,j]
+            params.IWavHar[1,j]*np.exp(-assemssment_point*wave_prop_constant[0,j])*1000.0/60.0*np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*assemssment_point-char_admit[1,j])/char_admit[0,j]
         
             #Reflected pressure is characteristic impedance times reflcted flow
             InsonationSitePressureRef[i]=InsonationSitePressureRef[i]-\
-            reflect_coeff[0,j]*params.IWavHar[1,j]*np.exp((-params.Dist2Inson-LengthOfUterine)*wave_prop_constant[0,j])*1000.0/60.0*\
-            np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*(params.Dist2Inson+LengthOfUterine)+reflect_coeff[1,j]-char_admit[1,j])/char_admit[0,j]
+            reflect_coeff[0,j]*params.IWavHar[1,j]*np.exp((-assemssment_point-LengthOfUterine)*wave_prop_constant[0,j])*1000.0/60.0*\
+            np.cos(2*np.pi*time[i]*params.IWavHar[0,j]+params.IWavHar[2,j]-wave_prop_constant[1,j]*(assemssment_point+LengthOfUterine)+reflect_coeff[1,j]-char_admit[1,j])/char_admit[0,j]
         
                 
             InsonationSitePressure[i]=InsonationSitePressureIn[i]+InsonationSitePressureRef[i]+80*133   
