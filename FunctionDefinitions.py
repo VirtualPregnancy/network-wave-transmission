@@ -61,7 +61,6 @@ def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
         if(vessels['vessel_type'][i]=='Anastomose'):
             for j in range(0,params.NHar):
                 eff_admit[i][j]=char_admit[i][j]/(1.0+char_admit[i][j]*v_resist) #adding venous resistance in series
-        else:
             for j in range(0,params.NHar):
                 omega=(j+1)*2.0*np.pi*params.HeartRate/60.0
                 IVS_admit=terminals[2]*(1.0+np.complex(0.0,1.0)*omega*terminals[0]*terminals[1])/terminals[0]
