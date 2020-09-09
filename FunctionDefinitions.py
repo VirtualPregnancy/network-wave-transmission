@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 import VesselDefinitionRat as params
+import matplotlib.pyplot as plt
 ##Function definitions: contains all the routines required to calculate admittance, sum through a network structure, apply boundary conditions and export solutions.
 def total_resistance(vessels,terminals):
     #Calculates total resistance of the uterine arteries, outputs this resistance and a venous equivalent resistance (half of arterial resistance)
@@ -72,20 +73,28 @@ def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
         reflect[i][:]=np.divide(char_admit[i][:]-daughter_admit,char_admit[i][:]+daughter_admit)
         eff_admit[i][:]=char_admit[i][:]*(1.0-reflect[i][:]*np.exp(-2.0*prop_const[i][:]*vessels['length'][i]))\
             /(1.0+reflect[i][:]*np.exp(-2.0*prop_const[i][:]*vessels['length'][i]))
-    
+    print(reflect)
     return [eff_admit,reflect]
 
 
-def flow_factor(vessels,terminals,char_admit,prop_constant):
+def flow_factor(vessels,terminals,char_admit,prop_constant,reflect_coeff):
     #calculates how flow propagates through the tree
-
+    print(prop_constant)
+    q_factor = np.zeros((np.size(vessels), params.NHar), dtype=complex)
     for i in range(0,np.size(vessels)):
-
-        if(vessels['vessel_type'][i]=='Anastomose'):
-            for j in range(0,params.NHar):
-                print('Anastomose not included yet')
+            upstream_element = vessels['generation'][i]-2 #could be generalised to search for generation above
+            print(i,upstream_element)
             for j in range(0,params.NHar):
                 omega=(j+1)*2.0*np.pi*params.HeartRate/60.0
+                if (upstream_element == -1):
+                    q_factor[i][j] = 1.0
+
+                else:
+                    q_factor[i][j] =  q_factor[upstream_element][j]*(1.+reflect_coeff[upstream_element][j]) * \
+                                      np.exp(-1. * vessels['length'][upstream_element]*prop_constant[upstream_element][j]) \
+                                      / (char_admit[upstream_element][j]*(1+reflect_coeff[i][j])*np.exp(-2.* \
+                                      vessels['length'][i]*prop_constant[i][j]))
+    return q_factor
     
 def flow_velocity_properties(velocity):
     #Outputs properties of the velocity waveform
@@ -170,3 +179,25 @@ def timecourse(StartTime,EndTime,dt,reflect_coeff,char_admit,wave_prop_constant,
             InsonationSiteVelocity[i]=(InsonationSiteTotalFlow[i])*(1000.0/60.0)/(np.pi*UterineRadius*UterineRadius+UtCompliance*(InsonationSitePressure[i]))/10.0
     
     return [InsonationSiteVelocity,time]
+
+def any_timecourse(StartTime,EndTime,dt,q_factor,char_admit):
+    vessel = 'Radial'
+    for i in range(0, np.size(params.vessels)):
+        if(params.vessels['vessel_type'][i]==vessel):
+            vessel_index = i
+
+    #define time course
+    NTime=int(np.ceil((EndTime-StartTime)/dt))
+    time=np.zeros(NTime)
+    print(vessel_index)
+    forward_pressure = np.zeros(NTime)  # Pa
+    for i in range(0,NTime):
+        time[i]=dt*i
+        for j in range(0,params.NHar):
+            forward_pressure[i] = forward_pressure[i] + abs(q_factor[vessel_index][j])/abs(char_admit[vessel_index][j])
+
+
+
+
+    plt.plot(forward_pressure)
+    plt.show()

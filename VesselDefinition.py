@@ -34,7 +34,7 @@ IWavHar=np.array([[1.0*HeartRate/60.0, 2.0*HeartRate/60.0, 3.0*HeartRate/60.0, 4
 
 
 #Option to plot waveform to screen
-plotv='y'
+plotv='n'
 
 ## Define time points at which you want to plot flows
 StartTime=0.0
