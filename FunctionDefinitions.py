@@ -10,6 +10,7 @@ def total_resistance(vessels,terminals):
     for i in range(0,np.size(vessels)):
         #Poiseille resistance of each vessels
         resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0)/vessels['number'][i]
+        print(vessels['vessel_type'][i])
         if(vessels['vessel_type'][i]=='Anastomose'):
             anast_index=i
         else:
@@ -77,11 +78,11 @@ def effective_admittance(vessels,terminals,char_admit,prop_const,v_resist):
     
 def flow_velocity_properties(velocity):
     #Outputs properties of the velocity waveform
-    print "Velocity waveform properties "
-    print "============================="
-    print 'S/D = ' + str(np.max(velocity)/np.min(velocity))
-    print 'RI = ' + str((np.max(velocity)-np.min(velocity))/np.max(velocity))
-    print 'PI = ' + str((np.max(velocity)-np.min(velocity))*np.size(velocity)/np.sum(velocity))
+    print("Velocity waveform properties ")
+    print("=============================")
+    print('S/D = ' + str(np.max(velocity)/np.min(velocity)))
+    print('RI = ' + str((np.max(velocity)-np.min(velocity))/np.max(velocity)))
+    print('PI = ' + str((np.max(velocity)-np.min(velocity))*np.size(velocity)/np.sum(velocity)))
     
     #check for notch - note that this is a simple assessment of the characteristics of the waveform and will fail fo some complicated waveforms but works for most physiologically realistic parameter sets. Plot your waveform if you are simulating something perturbed far from the phyisological range (especially with many reflections) to confirm accuracy of outputs.
     point1=1
@@ -95,12 +96,13 @@ def flow_velocity_properties(velocity):
     while(velocity[point2+1]>velocity[point2] and point2<checksize):
         point2=point2+1
     if(point1 < point2):
-        print "Notch present"
-        print "Notch height " + str(velocity[point2]-velocity[point1])
-        print "Notch ratio "+ str((velocity[point2]-velocity[point1])/(np.max(velocity)-np.min(velocity)))
+        print("Notch present")
+        print("Notch height " + str(velocity[point2]-velocity[point1]))
+        print("Notch ratio "+ str((velocity[point2]-velocity[point1])/(np.max(velocity)-np.min(velocity))))
         
     else:
-        print "No notch present"
+        print("No notch present")
+
         
 def timecourse(StartTime,EndTime,dt,reflect_coeff,char_admit,wave_prop_constant,SteadyFlow,UtCompliance):
     #Convert admittance spectra to time dependent waveforms as described by Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376.) Output is insonation site velocity and time, for plotting but interested users can add outputs.
