@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import numpy as np
-import VesselDefinitionRat as params
+import VesselDefinition as params
 ##Function definitions: contains all the routines required to calculate admittance, sum through a network structure, apply boundary conditions and export solutions.
 def total_resistance(vessels,terminals):
     #Calculates total resistance of the uterine arteries, outputs this resistance and a venous equivalent resistance (half of arterial resistance)

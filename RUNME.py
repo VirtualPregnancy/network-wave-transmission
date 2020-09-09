@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 import matplotlib.pyplot as plt
-import VesselDefinitionRat as params
+import VesselDefinition as params
 import FunctionDefinitions as funcs
 
 ## Calculate total resistance of the system and compare to baseline (flow decreases by this factor as resistance increases assuming a constant driving pressure)
