@@ -1,6 +1,6 @@
 import numpy as np
 #Distance from 'inlet' to insonation site
-Dist2Inson=20 #mm
+Dist2Inson= 4. #mm
 #Blood viscosity (Pa.s)
 mu=3.4e-3
 #Blood density (g/mm3)
@@ -9,16 +9,18 @@ rho=1.05e-03
 E=1.50e+06 #Pa
 h=0.01 #no units
 
+NumberPlacentae = 7.
+
 #Definition of geometry
 #Generation |Number of vessels at this level | Vessel Radius (mm) | Vessel length (mm) |
 #To eliminate anastomoses simply give them zero length (note you also need to do this in baseline case)
-vessels = np.array([(1, 1, .36, 85.0,'Uterine'),(2, 1, .14, 17.5,'Arcuate'),(3, 4.5, 0.11, 33.0,'Radial'),(4, 13, 0.25, .54,'Spiral'),(5, 2, 0.6, 7.2,'Canal'),(6, 50, 0.2, 0.0,'Anastomose')],
-                  dtype=[('generation', 'i4'),('number', 'i4'),('radius', 'f8'),('length', 'f8'),('vessel_type', 'U10')])
+vessels = np.array([(1, 1, .36, 5.,'InUterine'),(2, 1, .36, 6.64,'Uterine'),(3, 1, .14, 11.78,'Arcuate'),(4, 11.5, 0.11, 4.31,'Radial'),(5, 13., 0.25, .54,'Spiral'),(6, 2., 0.6, 7.2,'Canal')],
+                  dtype=[('generation', 'i4'),('number', 'f8'),('radius', 'f8'),('length', 'f8'),('vessel_type', 'U10')])
 
 
 #spirals and IVS are defined by  resistance (Pa.s/mm) and compliance (/Pa) [R|C|0=off 1=on]
 #To remove these from the model (eg post partum) set third parameter to be zero, otherwise set as 1
-SA_IVS = np.array([1.6,1e-8,1]);
+SA_IVS = np.array([1.6,1e-8,1])
 
 ## DEFINE INCIDENT WAVEFORM
 #incident harmonics
@@ -26,6 +28,8 @@ SA_IVS = np.array([1.6,1e-8,1]);
 HeartRate=408.
 #steady flow component (baseline) in ml/min - will be scaled with resistance
 SteadyFlow= 9.43515861937
+
+StaticPressure = 80.*133.
 #Number of flow harmonics
 NHar=10
 
@@ -36,7 +40,7 @@ IWavHar=np.array([[1.0*HeartRate/60.0, 2.0*HeartRate/60.0, 3.0*HeartRate/60.0, 4
 
 
 #Option to plot waveform to screen
-plotv='n'
+plotv='y'
 
 ## Define time points at which you want to plot flows
 StartTime=0.0

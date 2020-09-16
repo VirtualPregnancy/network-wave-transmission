@@ -12,50 +12,66 @@ def total_resistance(vessels,terminals):
     static_inlet_flow = params.SteadyFlow*1000./60. #ml/min converted to mm^3/s
     pressure_out = np.zeros(np.size(vessels)+1)
 
-    print("Flow and Pressure in each vessel type")
-    print("=====================================")
 
     for i in range(0,np.size(vessels)):
         # Poiseille resistance of each vessels
         # Units of resistance are Pa.s/mm^3
-        resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0)/vessels['number'][i]
-        if(vessels['vessel_type'][i]=='Anastomose'):
-            anast_index=i
+        resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0) /vessels['number'][i]
+        if(vessels['vessel_type'][i]=='InUterine'):
+            inlet_index = i
+        elif(vessels['vessel_type'][i]=='Uterine'):
+            uterine_index = i
+        elif(vessels['vessel_type'][i]=='Arcuate'):
+            arcuate_index = i
+        elif (vessels['vessel_type'][i] == 'Radial'):
+            radial_index = i
+
+    ut_unit_resistance = 0.
+    #We have a uterine segment in parallel to an arcuate from which branches everything else
+
+    arc_unit_resistance = 0.
+    for i in range(arcuate_index, np.size(vessels)):
+        if i == arcuate_index:
+            arcuate_segment_resistance= resistance[i]/vessels['number'][radial_index]
+            terminal_resistance = terminals[0]*vessels['number'][radial_index] #Pa.s/mm^3
+            arc_unit_resistance = arc_unit_resistance + terminal_resistance +  arcuate_segment_resistance
         else:
-            if i == 0:
-                flow[i]=static_inlet_flow/vessels['number'][i]
-                pressure_out[i] = static_inlet_pressure-resistance[i]*flow[i]
+            arc_unit_resistance =  terminal_resistance +  arcuate_segment_resistance + 1./(1./resistance[i]*vessels['number'][radial_index] + 1./arc_unit_resistance)#gives number of vessels in parallel per radial
+            print(vessels['vessel_type'][i],vessels['number'][radial_index]/vessels['number'][i])
+
+    arc_and_ut_unit_resistance = 1./(1./arc_unit_resistance + 1./resistance[uterine_index]) #add arcuate unit in parallel with uterine artery segment
+
+    total_resistance = resistance[inlet_index] + arc_and_ut_unit_resistance * params.NumberPlacentae
+
+    print("=====================================")
+    print("Total pressure drop along uterine horn")
+    print("======================================")
+    dPress = static_inlet_flow *total_resistance #Pa
+    print(str(dPress) + ' Pa,' + str(dPress/133.) + ' mmHg' )
+    print("=====================================")
+    print("Flow and Pressure in each vessel type")
+    print("=====================================")
+    for i in range(0, np.size(vessels)):
+        if vessels['vessel_type'][i]=='InUterine':
+            flow[i] = static_inlet_flow
+            pressure_out[i] = static_inlet_pressure - flow[i]*resistance[i]
+        elif vessels['vessel_type'][i] == 'Uterine':
+            flow[i] = (arc_unit_resistance)/(arc_unit_resistance+resistance[uterine_index])*flow[inlet_index]
+            pressure_out[i] = pressure_out[i-1] - flow[i] * resistance[i]
+        elif vessels['vessel_type'][i] == 'Arcuate':
+            flow[i] = (resistance[uterine_index])/(arc_unit_resistance+resistance[uterine_index])*flow[inlet_index]
+            pressure_out[i] = pressure_out[inlet_index]-arc_unit_resistance*flow[i]
+        else:
+            flow[i] = arcuate_index/vessels['number'][i]
+            if(i == radial_index):
+                pressure_in = pressure_out[inlet_index] - arcuate_segment_resistance*flow[arcuate_index]
+                pressure_out[i] = pressure_in - flow[i]*resistance[i]*vessels['number'][i]
             else:
-                flow[i]=flow[i-1]*vessels['number'][i-1]/vessels['number'][i]
-                pressure_out[i] = pressure_out[i-1] - resistance[i] * flow[i]
-
-            total_resistance=total_resistance+resistance[i]
-            print(vessels['vessel_type'][i],flow[i]*60./1000.,resistance[i],pressure_out[i]/133.)
-
-    if(vessels['length'][anast_index]==0.0):
-        venous_resistance=0.0
-        #Only IVS contribution to resistance (as in Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376.)
-        parallel_resistance=terminals[0] #Pa.s/mm^3
-        flow[np.size(vessels)] = flow[np.size(vessels)-2]
-        pressure_out[np.size(vessels)] = pressure_out[np.size(vessels)-2] - parallel_resistance * flow[np.size(vessels)]
-
-        print('Terminal', flow[np.size(vessels)] * 60. / 1000., parallel_resistance,pressure_out[np.size(vessels)] / 133.)
-
-
-    else:        
-        venous_resistance=total_resistance/2.0 #Assuming veins are half as resistive as arteries
-        #add terminal and anastomosis resistance in parallel
-        flow[anast_index]=(1.-(resistance[anast_index]+venous_resistance)/(resistance[anast_index]+venous_resistance+terminals[2]*terminals[0]))*flow[np.size(vessels) - 2]
-        flow[np.size(vessels)]=flow[np.size(vessels)-2]-flow[anast_index]
-        parallel_resistance=1.0/(1.0/(resistance[anast_index]+venous_resistance)+terminals[2]*1.0/terminals[0])
-
-        pressure_out[np.size(vessels)] = pressure_out[np.size(vessels)-2] - terminals[2]*terminals[0] * flow[np.size(vessels)]
-        pressure_out[anast_index] = pressure_out[np.size(vessels) - 2] - (resistance[anast_index]+venous_resistance) * flow[anast_index]
-        print('Anastomosis', flow[anast_index] * 60. / 1000., (resistance[anast_index]+venous_resistance),
-              pressure_out[anast_index] / 133.)
-        print('Terminal', flow[np.size(vessels)] * 60. / 1000.,terminals[2]*terminals[0],pressure_out[np.size(vessels)] / 133.)
-
-    total_resistance=total_resistance+parallel_resistance
+                pressure_out[i] = pressure_in - flow[i] * resistance[i] * vessels['number'][i]
+        print(str(vessels['vessel_type'][i]) + ' flow: ' + str(flow[i]) + ' mm^3/s ' + str(flow[i]*60./1000.) + ' ml/min ' + str(flow[i]*60.) + ' ul/min ')
+        print(str(vessels['vessel_type'][i]) + ' pressure out: ' + str(pressure_out[i]) + ' Pa ' + str(
+            pressure_out[i]/133.) + ' mmHg ')
+    venous_resistance = 0.
     return [total_resistance,venous_resistance]
     
     
