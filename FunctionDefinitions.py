@@ -20,6 +20,9 @@ def total_resistance(vessels,terminals):
         # Poiseille resistance of each vessels
         # Units of resistance are Pa.s/mm^3
         resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0)/vessels['number'][i]
+
+        print(vessels['vessel_type'][i], resistance[i])
+
         if(vessels['vessel_type'][i]=='Anastomose'):
             anast_index=i
         else:

@@ -17,7 +17,7 @@ def total_resistance(vessels,terminals):
         # Poiseille resistance of each vessels
         # Units of resistance are Pa.s/mm^3
         resistance[i]=81.0*params.mu*vessels['length'][i]/(8.0*np.pi* vessels['radius'][i]**4.0) /vessels['number'][i]
-        print(81.0*params.mu*1./(8.0*np.pi* .11**4.0))
+        print(vessels['vessel_type'][i], resistance[i])
         if(vessels['vessel_type'][i]=='InUterine'):
             inlet_index = i
         elif(vessels['vessel_type'][i]=='Uterine'):
@@ -30,17 +30,25 @@ def total_resistance(vessels,terminals):
     ut_unit_resistance = 0.
     #We have a uterine segment in parallel to an arcuate from which branches everything else
     rad_sp_can_resistance = 0.
-    for i in range(arcuate_index, np.size(vessels)):
-        if i == arcuate_index:
-            arcuate_segment_resistance= resistance[i]/2.#vessels['number'][radial_index]
-            terminal_resistance = terminals[0] #Pa.s/mm^3
-        else:
-            rad_sp_can_resistance = rad_sp_can_resistance + resistance[i]
+    if(params.mu*vessels['length'][arcuate_index]==0.):
+        #No arcuate
+        uterine_segment_resistance = resistance[uterine_index]/2.
+        terminal_resistance = terminals[0]#Pa.s/mm^3
+    else:
+        arcuate_segment_resistance = resistance[arcuate_index] / 2.  # vessels['number'][radial_index]
+        terminal_resistance = terminals[0]  # Pa.s/mm^3
 
-    total_arc_resistance =  arcuate_segment_resistance+ 1./(1./arcuate_segment_resistance + 1./(rad_sp_can_resistance + terminal_resistance))
 
+    for i in range(arcuate_index+1, np.size(vessels)):
+        rad_sp_can_resistance = rad_sp_can_resistance + resistance[i]
 
-    arc_and_ut_unit_resistance = 1./(1./total_arc_resistance + 1./resistance[uterine_index]) #add arcuate unit in parallel with uterine artery segment
+    if(params.mu*vessels['length'][arcuate_index]==0.):
+        #No arcuate
+        arc_and_ut_unit_resistance = uterine_segment_resistance + 1. / (
+                    1. / uterine_segment_resistance + 1. / (rad_sp_can_resistance + terminal_resistance))
+    else:
+        total_arc_resistance =  arcuate_segment_resistance+ 1./(1./arcuate_segment_resistance + 1./(rad_sp_can_resistance + terminal_resistance))
+        arc_and_ut_unit_resistance = 1./(1./total_arc_resistance + 1./resistance[uterine_index]) #add arcuate unit in parallel with uterine artery segment
 
 
     print("=====================================")
@@ -51,21 +59,34 @@ def total_resistance(vessels,terminals):
             flow[i] = static_inlet_flow
             pressure_out[i] = static_inlet_pressure - flow[i]*resistance[i]
         elif vessels['vessel_type'][i] == 'Uterine':
-            flow[i] = (total_arc_resistance)/(total_arc_resistance+resistance[uterine_index])*flow[inlet_index]
+            if (params.mu*vessels['length'][arcuate_index]==0.):
+                flow[i] = (rad_sp_can_resistance + terminal_resistance)/(rad_sp_can_resistance + terminal_resistance+uterine_segment_resistance)*flow[inlet_index]
+            else:
+                flow[i] = (total_arc_resistance)/(total_arc_resistance+resistance[uterine_index])*flow[inlet_index]
             pressure_out[i] = pressure_out[i-1] - flow[i] * resistance[i]
         elif vessels['vessel_type'][i] == 'Arcuate':
-            flow[i] = (resistance[uterine_index])/(total_arc_resistance+resistance[uterine_index])*flow[inlet_index]
-            pressure_out[i] = pressure_out[inlet_index]-total_arc_resistance*flow[i]
+            if (params.mu*vessels['length'][arcuate_index]==0.):
+                flow[i] = (uterine_segment_resistance)/(rad_sp_can_resistance + terminal_resistance+uterine_segment_resistance)*flow[inlet_index]
+                pressure_out[i] = pressure_out[inlet_index] - flow[inlet_index] * uterine_segment_resistance
+            else:
+                flow[i] = (resistance[uterine_index])/(total_arc_resistance+resistance[uterine_index])*flow[inlet_index]
+                pressure_out[i] = pressure_out[inlet_index]-total_arc_resistance*flow[i]
         else:
             flow[i] = flow[arcuate_index]/vessels['number'][i] #flow per vessel
             if(i == radial_index):
-                pressure_in = pressure_out[inlet_index] - arcuate_segment_resistance*flow[arcuate_index]
+                if (params.mu * vessels['length'][arcuate_index] == 0.):
+                    pressure_in = pressure_out[arcuate_index]
+                else:
+                    pressure_in = pressure_out[inlet_index] - arcuate_segment_resistance*flow[arcuate_index]
                 pressure_out[i] = pressure_in - flow[arcuate_index]*resistance[radial_index] #Assumption: Total arcuate flow goes through all the vessels below it
             else:
                 pressure_out[i] = pressure_out[i-1] - resistance[i] * flow[arcuate_index]
-        print(str(vessels['vessel_type'][i]) + ' flow: ' + str(flow[i]) + ' mm^3/s ' + str(flow[i]*60./1000.) + ' ml/min ' + str(flow[i]*60.) + ' ul/min ')
-        print(str(vessels['vessel_type'][i]) + ' pressure out: ' + str(pressure_out[i]) + ' Pa ' + str(
-            pressure_out[i]/133.) + ' mmHg ')
+        if params.mu * vessels['length'][arcuate_index] == 0 and vessels['vessel_type'][i] == 'Arcuate':
+            print('No arcuate')
+        else:
+            print(str(vessels['vessel_type'][i]) + ' flow: ' + str(flow[i]) + ' mm^3/s ' + str(flow[i]*60./1000.) + ' ml/min ' + str(flow[i]*60.) + ' ul/min ')
+            print(str(vessels['vessel_type'][i]) + ' pressure out: ' + str(pressure_out[i]) + ' Pa ' + str(
+                pressure_out[i]/133.) + ' mmHg ')
     flow[np.size(vessels)]=flow[arcuate_index]
     pressure_out[np.size(vessels)] = pressure_out[np.size(vessels)-1]-terminal_resistance * flow[np.size(vessels)]
     print('Terminals ' + ' flow: ' + str(flow[np.size(vessels)]) + ' mm^3/s ' + str(
