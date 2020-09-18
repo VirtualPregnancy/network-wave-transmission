@@ -14,11 +14,11 @@ NumberPlacentae = 7.
 #Definition of geometry
 #Generation |Number of vessels at this level | Vessel Radius (mm) | Vessel length (mm) |
 #To eliminate anastomoses simply give them zero length (note you also need to do this in baseline case)
-vessels = np.array([(1, 1, .36, 5.,'InUterine'),(2, 1, .36, 6.64,'Uterine'),(3, 1, .14, 11.78,'Arcuate'),(4, 11.5, 0.11, 4.31,'Radial'),(5, 13., 0.25, .54,'Spiral'),(6, 2., 0.6, 7.2,'Canal')],
+vessels = np.array([(1, 1, .36, 5.,'InUterine'),(2, 1, .36, 6.64,'Uterine'),(3, 1.5, .14, 11.78,'Arcuate'),(4, 11.5, 0.11, 4.31,'Radial'),(5, 13., 0.25, 0.54,'Spiral'),(6, 2., 0.6, 7.2,'Canal')],
                   dtype=[('generation', 'i4'),('number', 'f8'),('radius', 'f8'),('length', 'f8'),('vessel_type', 'U10')])
 
 
-#spirals and IVS are defined by  resistance (Pa.s/mm) and compliance (/Pa) [R|C|0=off 1=on]
+#IVS are defined by  resistance (Pa.s/mm) and compliance (/Pa) [R|C|0=off 1=on]
 #To remove these from the model (eg post partum) set third parameter to be zero, otherwise set as 1
 SA_IVS = np.array([1.6,1e-8,1])
 
@@ -51,8 +51,8 @@ dt=0.01 #time step for plotting
 ##BASELINE VALUES FOR COMPARISON - Not necessary to change unless you change the structure of the geometry(!)
 #Definition of geometry
 #Generation |Number of vessels at this level | Vessel Radius (mm) | Vessel length (mm) |
-vessels_bl = np.array([(1, 1, .36, 85.0,"Uterine"),(2, 1, 0.14, 17.5,'Arcuate'),(3, 4.5, 0.11, 33.0,'Radial'),(4, 13, 0.25, .54,'Spiral'),(5, 2, 0.6, 7.2,'Canal'),(6, 50, 0.2, 0.0,'Anastomose')],
-                  dtype=[('generation', 'i4'),('number', 'i4'),('radius', 'f8'),('length', 'f8'),('vessel_type', 'U10')])
+vessels_bl =  np.array([(1, 1, .36, 5.,'InUterine'),(2, 1, .36, 6.64,'Uterine'),(3, 1, .24, 11.78,'Arcuate'),(4, 11.5, 0.11, 4.31,'Radial'),(5, 13., 0.25, 0.54,'Spiral'),(6, 2., 0.6, 7.2,'Canal')],
+                  dtype=[('generation', 'i4'),('number', 'f8'),('radius', 'f8'),('length', 'f8'),('vessel_type', 'U10')])
 #spirals and IVS are defined by  resistance and compliance [R|C]
 SA_IVS_bl = np.array([1.6,1e-8,1]);
 
