@@ -15,7 +15,7 @@ def total_resistance(vessels,terminals):
     print("=====================================")
     print("Flow and Pressure in each vessel type")
     print("=====================================")
-
+    anast_index = 0 #initialise
     for i in range(0,np.size(vessels)):
         # Poiseille resistance of each vessels
         # Units of resistance are Pa.s/mm^3
@@ -39,7 +39,7 @@ def total_resistance(vessels,terminals):
             print(str(vessels['vessel_type'][i]) + ' pressure out: ' + str(pressure_out[i]) + ' Pa ' + str(
                 pressure_out[i] / 133.) + ' mmHg ')
 
-    if(vessels['length'][anast_index]==0.0):
+    if(vessels['length'][anast_index]==0.0) or (anast_index == 0):
         venous_resistance=0.0
         #Only IVS contribution to resistance (as in Mo et al. A transmission line modelling approach to the interpretation of uterine doppler waveforms. Ultrasound in Medicine and Biology, 1988. 14(5): p. 365-376.)
         parallel_resistance=terminals[0] #Pa.s/mm^3
